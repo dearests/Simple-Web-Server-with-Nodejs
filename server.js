@@ -27,7 +27,7 @@ http.createServer(function (req, res) {
     try {
         stats = fs.lststSync(fileName);
         console.log(stats)
-    } catch(fileName) {
+    } catch(e) {
         res.writeHead(404, {'Content-Type': 'text/plain'});
         res.write('404 Not Found\n');
         res.end();
@@ -39,6 +39,17 @@ http.createServer(function (req, res) {
     if(stats.isFile()) {
         var mimeType = mimeTypes[path.extname(fileName).split(".").reverse()[0]];
         res.writeHead(200, {'Content-Type': mimeType});
+
+        var fileStream = fs.createReadStream(fileName);
+        fileStream.pipe(res);
+    } else if(stats.isDirectory()) {
+        res.writeHead(302, {
+            'Location': 'index.html'
+        });
+        res.end();
+    } else {
+        res.writeHead(500, {'Content-Type': 'text/plain'});
+        res.write('500 Internal Error\n');
         res.end();
     }
 }).listen(8080);
